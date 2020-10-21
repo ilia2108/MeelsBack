@@ -1,0 +1,39 @@
+version: '3'
+
+networks:
+  backend:
+
+services:
+  db:
+    image: postgres
+    container_name: postgres-db
+    environment:
+      - DB_HOST=db
+      - DB_NAME=app
+      - DB_USER=postgres
+      - DB_PASS=postgres
+    networks:
+      - "backend"
+
+  web:
+    image: mendra/meelt-api
+    container_name: meelt-api
+    build: .
+    command: python3 manage.py runserver 0.0.0.0:80
+    ports:
+      - "80:80"
+    depends_on:
+      - migration
+    links:
+      - db
+    networks:
+      - "backend"
+
+  migration:
+    build: .
+    image: mendra/meelt-api
+    command: python3 manage.py migrate
+    depends_on:
+      - db
+    links:
+      - db
